@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=MDNotebook
+GenericName=Markdown Notebook
+Comment=Private, encrypted markdown notebook
+Exec=mdnotebook
+Icon=com.mdnotebook.editor
+Categories=Office;TextEditor;Utility;
+Keywords=markdown;notes;encrypted;notebook;
+Terminal=false
+StartupNotify=true

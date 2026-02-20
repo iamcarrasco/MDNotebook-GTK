@@ -1,0 +1,41 @@
+name: mdnotebook
+version: '0.1.0'
+summary: Private, encrypted markdown notebook
+description: |
+  MDNotebook is an offline encrypted markdown notebook for Linux.
+  Your notes never leave your machine. AES-256-GCM encryption with
+  PBKDF2 key derivation. Built with GTK 4 and Libadwaita.
+grade: stable
+confinement: strict
+base: core24
+icon: data/icons/hicolor/512x512/apps/com.mdnotebook.editor.png
+
+apps:
+  mdnotebook:
+    command: usr/bin/mdnotebook
+    extensions: [gnome]
+    plugs:
+      - home
+      - removable-media
+
+parts:
+  mdnotebook:
+    plugin: rust
+    source: .
+    build-packages:
+      - pkg-config
+      - libgtk-4-dev
+      - libadwaita-1-dev
+      - libgtksourceview-5-dev
+    stage-packages:
+      - libgtk-4-1
+      - libadwaita-1-0
+      - libgtksourceview-5-0
+    organize:
+      bin/mdnotebook: usr/bin/mdnotebook
+    override-build: |
+      craftctl default
+      install -Dm644 $CRAFT_PART_SRC/data/icons/hicolor/512x512/apps/com.mdnotebook.editor.png \
+        $CRAFT_PART_INSTALL/usr/share/icons/hicolor/512x512/apps/com.mdnotebook.editor.png
+      install -Dm644 $CRAFT_PART_SRC/data/com.mdnotebook.NativeEditor.desktop \
+        $CRAFT_PART_INSTALL/usr/share/applications/com.mdnotebook.NativeEditor.desktop

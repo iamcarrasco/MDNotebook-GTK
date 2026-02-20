@@ -2,7 +2,7 @@
   <img src="data/icons/hicolor/512x512/apps/com.mdnotebook.editor.png" width="120" alt="MDNotebook icon" />
 </p>
 
-<h1 align="center">MDNotebook</h1>
+<h1 align="center">MDNotebook — Native</h1>
 
 <p align="center">
   A private, encrypted markdown notebook for Linux.
@@ -150,6 +150,7 @@ sudo pacman -S base-devel gtk4 libadwaita gtksourceview5
 ### Commands
 
 ```bash
+cd Native
 cargo run              # Development mode
 cargo test             # Run tests
 cargo build --release  # Production build (binary at target/release/mdnative-editor)
@@ -173,6 +174,7 @@ cargo build --release  # Production build (binary at target/release/mdnative-edi
 ## Project Structure
 
 ```
+Native/
 ├── Cargo.toml
 ├── data/
 │   └── icons/              # App icon
