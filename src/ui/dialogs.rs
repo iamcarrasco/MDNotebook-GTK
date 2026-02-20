@@ -70,14 +70,14 @@ pub fn show_shortcuts_window(parent: &adw::ApplicationWindow) {
 
 pub fn show_about_dialog(parent: &adw::ApplicationWindow) {
     let dialog = adw::AboutDialog::new();
-    dialog.set_application_name("MD Notebook");
+    dialog.set_application_name("MDNotebook");
     dialog.set_version("0.1.0");
-    dialog.set_developer_name("MD Notebook Contributors");
+    dialog.set_developer_name("iamcarrasco");
     dialog.set_license_type(gtk::License::Gpl30);
     dialog.set_comments("A private, offline, encrypted Markdown notebook.");
     dialog.set_application_icon("com.mdnotebook.editor");
-    dialog.set_support_url("mailto:carrascoamm@gmail.com");
-    dialog.set_developers(&["Alex Carrasco <carrascoamm@gmail.com>"]);
+    dialog.set_website("https://github.com/iamcarrasco/MDNotebook-GTK");
+    dialog.set_developers(&["iamcarrasco"]);
     dialog.present(Some(parent));
 }
 
