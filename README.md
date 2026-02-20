@@ -18,20 +18,13 @@ Pre-built packages for Linux — no build tools required:
 
 | Package | Format |
 |---------|--------|
-| [mdnotebook_0.1.0-1_amd64.deb](https://github.com/iamcarrasco/MDNotebook-GTK/releases/download/v0.1.0/mdnotebook_0.1.0-1_amd64.deb) | Debian / Ubuntu |
-| [mdnotebook_0.1.0_amd64.snap](https://github.com/iamcarrasco/MDNotebook-GTK/releases/download/v0.1.0/mdnotebook_0.1.0_amd64.snap) | Snap |
+| [mdnotebook_0.1.0-1_amd64.deb](releases/mdnotebook_0.1.0-1_amd64.deb) | Debian / Ubuntu |
 
 ### Install .deb
 
 ```bash
 sudo dpkg -i mdnotebook_0.1.0-1_amd64.deb
 sudo apt-get install -f   # install dependencies if needed
-```
-
-### Install Snap
-
-```bash
-sudo snap install mdnotebook_0.1.0_amd64.snap --dangerous
 ```
 
 ---
