@@ -2,13 +2,37 @@
   <img src="data/icons/hicolor/512x512/apps/com.mdnotebook.editor.png" width="120" alt="MDNotebook icon" />
 </p>
 
-<h1 align="center">MDNotebook — Native</h1>
+<h1 align="center">MDNotebook</h1>
 
 <p align="center">
   A private, encrypted markdown notebook for Linux.
   <br />
   Your notes never leave your machine.
 </p>
+
+---
+
+## Download
+
+Pre-built packages for Linux — no build tools required:
+
+| Package | Format |
+|---------|--------|
+| [mdnotebook_0.1.0-1_amd64.deb](https://github.com/iamcarrasco/MDNotebook-GTK/releases/download/v0.1.0/mdnotebook_0.1.0-1_amd64.deb) | Debian / Ubuntu |
+| [mdnotebook_0.1.0_amd64.snap](https://github.com/iamcarrasco/MDNotebook-GTK/releases/download/v0.1.0/mdnotebook_0.1.0_amd64.snap) | Snap |
+
+### Install .deb
+
+```bash
+sudo dpkg -i mdnotebook_0.1.0-1_amd64.deb
+sudo apt-get install -f   # install dependencies if needed
+```
+
+### Install Snap
+
+```bash
+sudo snap install mdnotebook_0.1.0_amd64.snap --dangerous
+```
 
 ---
 
@@ -150,10 +174,10 @@ sudo pacman -S base-devel gtk4 libadwaita gtksourceview5
 ### Commands
 
 ```bash
-cd Native
 cargo run              # Development mode
 cargo test             # Run tests
-cargo build --release  # Production build (binary at target/release/mdnative-editor)
+cargo build --release  # Production build (binary at target/release/mdnotebook)
+cargo deb              # Build .deb package (requires cargo-deb)
 ```
 
 ---
@@ -174,7 +198,6 @@ cargo build --release  # Production build (binary at target/release/mdnative-edi
 ## Project Structure
 
 ```
-Native/
 ├── Cargo.toml
 ├── data/
 │   └── icons/              # App icon
