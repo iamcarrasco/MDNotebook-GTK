@@ -5,23 +5,49 @@ description: |
   MDNotebook is an offline encrypted markdown notebook for Linux.
   Your notes never leave your machine. AES-256-GCM encryption with
   PBKDF2 key derivation. Built with GTK 4 and Libadwaita.
+title: MDNotebook
+license: GPL-3.0
+contact: https://github.com/iamcarrasco/MDNotebook-GTK/issues
+issues: https://github.com/iamcarrasco/MDNotebook-GTK/issues
+source-code: https://github.com/iamcarrasco/MDNotebook-GTK
+website: https://github.com/iamcarrasco/MDNotebook-GTK
+lint:
+  ignore:
+    - library:
+        - usr/lib/**/libGLESv2.so*
+        - usr/lib/**/libcolordprivate.so*
+        - usr/lib/**/libdconf.so*
+        - usr/lib/**/libicuio.so*
+        - usr/lib/**/libicutest.so*
+        - usr/lib/**/libicutu.so*
+        - usr/lib/**/libGLdispatch.so*
 grade: stable
 confinement: strict
 base: core24
 icon: data/icons/hicolor/512x512/apps/com.mdnotebook.editor.png
 
+slots:
+  dbus-mdnotebook:
+    interface: dbus
+    bus: session
+    name: com.mdnotebook.NativeEditor
+
 apps:
   mdnotebook:
     command: usr/bin/mdnotebook
+    desktop: usr/share/applications/com.mdnotebook.NativeEditor.desktop
     extensions: [gnome]
     plugs:
       - home
       - removable-media
+    slots:
+      - dbus-mdnotebook
 
 parts:
   mdnotebook:
     plugin: rust
     source: .
+    rust-channel: stable
     build-packages:
       - pkg-config
       - libgtk-4-dev

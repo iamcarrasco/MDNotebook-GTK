@@ -1446,8 +1446,8 @@ pub fn wire_editor_signals(ctx: &EditorCtx, rich_view: &gtk::TextView, tag_entry
                                 let wiki_name = wiki_name.to_string();
                                 navigate_to_wiki_link(&ctx, &wiki_name);
                             } else if !url.is_empty() {
-                                let window = ctx.window.clone();
-                                gtk::show_uri(Some(&window), &url, gdk::CURRENT_TIME);
+                                let launcher = gtk::UriLauncher::new(&url);
+                                launcher.launch(Some(&ctx.window), gtk::gio::Cancellable::NONE, |_| {});
                             }
                             return;
                         }
@@ -3742,12 +3742,9 @@ pub fn set_save_status(ctx: &EditorCtx, status: &str) {
 // ---------------------------------------------------------------------------
 
 pub fn open_document(ctx: &EditorCtx) {
-    let dialog = gtk::FileChooserNative::builder()
+    let dialog = gtk::FileDialog::builder()
         .title("Open Markdown File")
-        .transient_for(&ctx.window)
-        .action(gtk::FileChooserAction::Open)
         .accept_label("Open")
-        .cancel_label("Cancel")
         .build();
 
     let filter = gtk::FileFilter::new();
@@ -3755,40 +3752,39 @@ pub fn open_document(ctx: &EditorCtx) {
     filter.add_pattern("*.md");
     filter.add_pattern("*.markdown");
     filter.add_pattern("*.txt");
-    dialog.add_filter(&filter);
+    let filters = gtk::gio::ListStore::new::<gtk::FileFilter>();
+    filters.append(&filter);
+    dialog.set_filters(Some(&filters));
 
     let ctx = ctx.clone();
-    dialog.connect_response(move |dialog, response| {
-        if response == gtk::ResponseType::Accept {
-            if let Some(file) = dialog.file() {
-                if let Some(path) = file.path() {
-                    match fs::read_to_string(&path) {
-                        Ok(text) => {
-                            let name = path
-                                .file_stem()
-                                .and_then(|name| name.to_str())
-                                .unwrap_or("Imported Note")
-                                .to_string();
-                            create_note(&ctx, name, text, vec!["imported".to_string()]);
-                        }
-                        Err(err) => show_error(
-                            &ctx.window,
-                            "Open failed",
-                            &format!("Could not read file:\n{err}"),
-                        ),
+    let window = ctx.window.clone();
+    dialog.open(Some(&window), gtk::gio::Cancellable::NONE, move |result: Result<gtk::gio::File, gtk::glib::Error>| {
+        if let Ok(file) = result {
+            if let Some(path) = file.path() {
+                match fs::read_to_string(&path) {
+                    Ok(text) => {
+                        let name = path
+                            .file_stem()
+                            .and_then(|name| name.to_str())
+                            .unwrap_or("Imported Note")
+                            .to_string();
+                        create_note(&ctx, name, text, vec!["imported".to_string()]);
                     }
-                } else {
-                    show_error(
+                    Err(err) => show_error(
                         &ctx.window,
                         "Open failed",
-                        "This file location is not a local path.",
-                    );
+                        &format!("Could not read file:\n{err}"),
+                    ),
                 }
+            } else {
+                show_error(
+                    &ctx.window,
+                    "Open failed",
+                    "This file location is not a local path.",
+                );
             }
         }
-        dialog.destroy();
     });
-    dialog.show();
 }
 
 pub fn save_document(ctx: &EditorCtx) {
@@ -3797,12 +3793,9 @@ pub fn save_document(ctx: &EditorCtx) {
 }
 
 pub fn save_document_as(ctx: &EditorCtx) {
-    let dialog = gtk::FileChooserNative::builder()
+    let dialog = gtk::FileDialog::builder()
         .title("Save Markdown File")
-        .transient_for(&ctx.window)
-        .action(gtk::FileChooserAction::Save)
         .accept_label("Save")
-        .cancel_label("Cancel")
         .build();
 
     let suggested = {
@@ -3814,36 +3807,35 @@ pub fn save_document_as(ctx: &EditorCtx) {
             .unwrap_or("Untitled.md")
             .to_string()
     };
-    dialog.set_current_name(&suggested);
+    dialog.set_initial_name(Some(&suggested));
 
     let filter = gtk::FileFilter::new();
     filter.set_name(Some("Markdown files"));
     filter.add_pattern("*.md");
     filter.add_pattern("*.markdown");
     filter.add_pattern("*.txt");
-    dialog.add_filter(&filter);
+    let filters = gtk::gio::ListStore::new::<gtk::FileFilter>();
+    filters.append(&filter);
+    dialog.set_filters(Some(&filters));
 
     let ctx = ctx.clone();
-    dialog.connect_response(move |dialog, response| {
-        if response == gtk::ResponseType::Accept {
-            if let Some(file) = dialog.file() {
-                if let Some(mut path) = file.path() {
-                    if path.extension().is_none() {
-                        path.set_extension("md");
-                    }
-                    write_document_to_path(&ctx, path);
-                } else {
-                    show_error(
-                        &ctx.window,
-                        "Save failed",
-                        "This file location is not a local path.",
-                    );
+    let window = ctx.window.clone();
+    dialog.save(Some(&window), gtk::gio::Cancellable::NONE, move |result: Result<gtk::gio::File, gtk::glib::Error>| {
+        if let Ok(file) = result {
+            if let Some(mut path) = file.path() {
+                if path.extension().is_none() {
+                    path.set_extension("md");
                 }
+                write_document_to_path(&ctx, path);
+            } else {
+                show_error(
+                    &ctx.window,
+                    "Save failed",
+                    "This file location is not a local path.",
+                );
             }
         }
-        dialog.destroy();
     });
-    dialog.show();
 }
 
 pub fn export_as_html(ctx: &EditorCtx) {
@@ -3888,45 +3880,41 @@ img {{ max-width: 100%; }}
         body = html_body,
     );
 
-    let dialog = gtk::FileChooserNative::builder()
+    let dialog = gtk::FileDialog::builder()
         .title("Export as HTML")
-        .transient_for(&ctx.window)
-        .action(gtk::FileChooserAction::Save)
         .accept_label("Export")
-        .cancel_label("Cancel")
         .build();
 
     let suggested = format!("{}.html", note_name);
-    dialog.set_current_name(&suggested);
+    dialog.set_initial_name(Some(&suggested));
 
     let filter = gtk::FileFilter::new();
     filter.set_name(Some("HTML files"));
     filter.add_pattern("*.html");
     filter.add_pattern("*.htm");
-    dialog.add_filter(&filter);
+    let filters = gtk::gio::ListStore::new::<gtk::FileFilter>();
+    filters.append(&filter);
+    dialog.set_filters(Some(&filters));
 
     let ctx = ctx.clone();
-    dialog.connect_response(move |dialog, response| {
-        if response == gtk::ResponseType::Accept {
-            if let Some(file) = dialog.file() {
-                if let Some(mut path) = file.path() {
-                    if path.extension().is_none() {
-                        path.set_extension("html");
-                    }
-                    match fs::write(&path, &html) {
-                        Ok(_) => send_toast(&ctx, "Exported as HTML"),
-                        Err(e) => show_error(
-                            &ctx.window,
-                            "Export Failed",
-                            &format!("Could not write HTML: {e}"),
-                        ),
-                    }
+    let window = ctx.window.clone();
+    dialog.save(Some(&window), gtk::gio::Cancellable::NONE, move |result: Result<gtk::gio::File, gtk::glib::Error>| {
+        if let Ok(file) = result {
+            if let Some(mut path) = file.path() {
+                if path.extension().is_none() {
+                    path.set_extension("html");
+                }
+                match fs::write(&path, &html) {
+                    Ok(_) => send_toast(&ctx, "Exported as HTML"),
+                    Err(e) => show_error(
+                        &ctx.window,
+                        "Export Failed",
+                        &format!("Could not write HTML: {e}"),
+                    ),
                 }
             }
         }
-        dialog.destroy();
     });
-    dialog.show();
 }
 
 pub fn write_document_to_path(ctx: &EditorCtx, path: PathBuf) {
@@ -4178,12 +4166,9 @@ pub fn insert_table_snippet(buffer: &gtk::TextBuffer) {
 }
 
 pub fn insert_image_snippet(ctx: &EditorCtx) {
-    let dialog = gtk::FileChooserNative::builder()
+    let dialog = gtk::FileDialog::builder()
         .title("Insert Image")
-        .transient_for(&ctx.window)
-        .action(gtk::FileChooserAction::Open)
         .accept_label("Insert")
-        .cancel_label("Cancel")
         .build();
 
     let filter = gtk::FileFilter::new();
@@ -4195,41 +4180,40 @@ pub fn insert_image_snippet(ctx: &EditorCtx) {
     filter.add_pattern("*.webp");
     filter.add_pattern("*.gif");
     filter.add_pattern("*.svg");
-    dialog.add_filter(&filter);
+    let filters = gtk::gio::ListStore::new::<gtk::FileFilter>();
+    filters.append(&filter);
+    dialog.set_filters(Some(&filters));
 
     let ctx = ctx.clone();
-    dialog.connect_response(move |dialog, response| {
-        if response == gtk::ResponseType::Accept {
-            if let Some(file) = dialog.file() {
-                if let Some(path) = file.path() {
-                    let filename = path
-                        .file_name()
-                        .and_then(|n| n.to_str())
-                        .unwrap_or("image")
-                        .to_string();
-                    match fs::read(&path) {
-                        Ok(bytes) => {
-                            let mime = mime_from_ext(
-                                path.extension()
-                                    .and_then(|e| e.to_str())
-                                    .unwrap_or(""),
-                            );
-                            store_image_as_asset(&ctx, &bytes, &filename, &mime);
-                        }
-                        Err(e) => {
-                            show_error(
-                                &ctx.window,
-                                "Insert image failed",
-                                &format!("Could not read file: {e}"),
-                            );
-                        }
+    let window = ctx.window.clone();
+    dialog.open(Some(&window), gtk::gio::Cancellable::NONE, move |result: Result<gtk::gio::File, gtk::glib::Error>| {
+        if let Ok(file) = result {
+            if let Some(path) = file.path() {
+                let filename = path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("image")
+                    .to_string();
+                match fs::read(&path) {
+                    Ok(bytes) => {
+                        let mime = mime_from_ext(
+                            path.extension()
+                                .and_then(|e| e.to_str())
+                                .unwrap_or(""),
+                        );
+                        store_image_as_asset(&ctx, &bytes, &filename, &mime);
+                    }
+                    Err(e) => {
+                        show_error(
+                            &ctx.window,
+                            "Insert image failed",
+                            &format!("Could not read file: {e}"),
+                        );
                     }
                 }
             }
         }
-        dialog.destroy();
     });
-    dialog.show();
 }
 
 pub fn try_paste_image(ctx: &EditorCtx) -> bool {
@@ -4892,28 +4876,22 @@ pub fn show_create_vault_dialog(window: &adw::ApplicationWindow) {
         let folder_label = folder_label.clone();
         let folder_path = folder_path.clone();
         folder_btn.connect_clicked(move |_| {
-            let chooser = gtk::FileChooserNative::builder()
+            let chooser = gtk::FileDialog::builder()
                 .title("Select Vault Folder")
-                .transient_for(&dialog_ref)
-                .action(gtk::FileChooserAction::SelectFolder)
                 .accept_label("Select")
-                .cancel_label("Cancel")
                 .build();
             let fl = folder_label.clone();
             let fp = folder_path.clone();
-            chooser.connect_response(move |chooser, response| {
-                if response == gtk::ResponseType::Accept {
-                    if let Some(file) = chooser.file() {
-                        if let Some(path) = file.path() {
-                            let p = path.to_string_lossy().to_string();
-                            fl.set_label(&p);
-                            *fp.borrow_mut() = Some(p);
-                        }
+            let dlg = dialog_ref.clone();
+            chooser.select_folder(Some(&dlg), gtk::gio::Cancellable::NONE, move |result: Result<gtk::gio::File, gtk::glib::Error>| {
+                if let Ok(file) = result {
+                    if let Some(path) = file.path() {
+                        let p = path.to_string_lossy().to_string();
+                        fl.set_label(&p);
+                        *fp.borrow_mut() = Some(p);
                     }
                 }
-                chooser.destroy();
             });
-            chooser.show();
         });
     }
 
