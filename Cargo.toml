@@ -1,0 +1,21 @@
+[package]
+name = "mdnative-editor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gtk = { package = "gtk4", version = "0.9" }
+adw = { package = "libadwaita", version = "0.7", features = ["v1_5"] }
+sourceview5 = "0.9"
+gdk-pixbuf = "0.20"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+aes-gcm = "0.10"
+pbkdf2 = { version = "0.12", features = ["simple"] }
+sha2 = "0.10"
+hmac = "0.12"
+rand = "0.8"
+base64 = "0.22"
+dirs = "5"
+pulldown-cmark = "0.12"
+zeroize = { version = "1", features = ["derive"] }
