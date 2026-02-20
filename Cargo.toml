@@ -22,8 +22,8 @@ pulldown-cmark = "0.12"
 zeroize = { version = "1", features = ["derive"] }
 
 [package.metadata.deb]
-maintainer = "iamalexandre <carrascoamm@gmail.com>"
-copyright = "2025 iamalexandre"
+maintainer = "iamcarrasco <carrascoamm@gmail.com>"
+copyright = "2025 iamcarrasco"
 license-file = ["LICENSE", "0"]
 depends = "libgtk-4-1 (>= 4.12), libadwaita-1-0 (>= 1.4), libgtksourceview-5-0 (>= 5.0), libgdk-pixbuf-2.0-0"
 section = "utils"
